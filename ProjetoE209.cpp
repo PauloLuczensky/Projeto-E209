@@ -64,7 +64,7 @@ if(cont >= 244 && sistema == true && aux == false){
 if(cont >= 1526 && sistema == true && aux == true){
     ADCSRA |= (1<<ADEN);//ativando a conversão
     ADCSRA |= (1<<ADSC);//Inicializando a conversão
-    TCCR0B = 0b00000000;//desativando o Timer
+    TCCR2B = 0b00000000;//desativando o Timer
     ADCSRA &= ~(1<<ADEN);
     //PWM igual a 127, metade do valor
     OCR2A =  127; 
