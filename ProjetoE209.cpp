@@ -19,7 +19,7 @@ void UART_Transmit(char *dados);
 
 ISR(INT0_vect){
   //VErificar esse if, ver se não é igual ao da main!!!
-  if(TCCR2B = 0b00001000){
+  if(TCCR2B == (TCCR2B | 0b000001000)){
      TCCR2B = 0b00000111;
   }
   else{
