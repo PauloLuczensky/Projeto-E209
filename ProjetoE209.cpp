@@ -79,7 +79,7 @@ void setup()
   UART_Init(MYUBRR);//Inicializa a comunicação serial
   DDRD = 0b00110000; //PD5 saída (motor da esteira), PD4 saída(LED que mostrará "Sistema Ligado"), PD3 entrada(botão que desligará o sistema), PD2 entrada(botão que ligará o sistema)
   DDRC = 0b00000000;//Usando o A0, será entrada. Variaremos para analisar o PWM
-  PORTD = 0b0000110;//Definindo pull up, nos botões PD3 e PD2
+  PORTD = 0b00001100;//Definindo pull up, nos botões PD3 e PD2
   TCNT2 = 0;//inicializando o contador em 0
   TIMSK2 = 0b00000001;// Ativando a interrupção por overflow
   TCCR2A = 0b00000011;//fast PWM to OCR0A
