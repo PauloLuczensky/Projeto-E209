@@ -93,6 +93,7 @@ void setup()
 
 void loop()
 {  
+    ADCSRA |= (1<<ADSC);  
     //Analisando a variação do PWM
     while(ADCSRA == (ADCSRA |(1 << ADSC)));
     OCR2A = (ADC*255)/1023;
