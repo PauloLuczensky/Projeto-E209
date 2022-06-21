@@ -30,6 +30,7 @@ ISR(INT0_vect){
 
 ISR(INT1_vect){
   TCCR2B = 0b00000000;//Desativando o sistema
+  TCCR0A = 0b00000000;
   cont = 0;//zerando o contador
   sistema = false;
   //Ver se colocamos aqui o desativar o led do motor
@@ -54,6 +55,7 @@ if(cont >= 244 && sistema == true && aux == false){
   PORTD ^= (1 << PD4); //Desligando o LED que mostra que o sistema foi ligado 
   UART_Transmit("Sistema ligado");//indicando que o sistema foi ligado
   UART_Transmit("\n");
+  TCCR0B = 1;
   PORTD |= (1 << PD6); //Ligando o Led que representa o motor
   aux = true;
   cont = 0;
@@ -91,8 +93,8 @@ void setup()
   TCCR2A = 0b00000000;//fast PWM to OCR0A
   TCCR2B = 0b00000000;// sem pre-escaler, iniciará o sistema
   //Configurando o PWM pelo TIMER 0
-  TCCR0A = 0b00000011;//fast PWM to OCR0A
-  TCCR0B = 0b00001000;// sem pre-escaler, iniciará o sistema
+  TCCR0A |= (1<<COM0A1) | (1<<WGM01) | (1<<WGM00);//fast PWM to OCR0A
+  TCCR0B = 0; // sem pre-escaler, iniciará o sistema
   OCR0A = 0;
   OCR2A = 0;
   EIMSK = (1<<INT1) | (1<<INT0); //Interrupção do PD2 e do PD3
