@@ -19,7 +19,7 @@ void UART_Transmit(char *dados);
 
 ISR(INT0_vect){
   //VErificar esse if, ver se não é igual ao da main!!!
-  if(TCCR2B == (TCCR2B | 0b000001000)){
+  if(TCCR2B == 0b00000000){
      TCCR2B = 0b00000111;
   }
   else{
@@ -33,8 +33,8 @@ ISR(INT1_vect){
   cont = 0;//zerando o contador
   sistema = false;
   //Ver se colocamos aqui o desativar o led do motor
-  PORTD &= ~(1<<PD5);//Desativando o LED do motor
-  OCR2A = 0;//zerando o OCR0A
+  PORTD &= ~(1<<PD6);//Desativando o LED do motor
+  OCR0A = 0;//zerando o OCR0A
   ADCSRA &= ~(1<<ADEN);//desativando o conversor
   UART_Transmit("Sistema desligado");//indicando que o sistema foi desligado
   UART_Transmit("\n");
@@ -54,7 +54,7 @@ if(cont >= 244 && sistema == true && aux == false){
   PORTD ^= (1 << PD4); //Desligando o LED que mostra que o sistema foi ligado 
   UART_Transmit("Sistema ligado");//indicando que o sistema foi ligado
   UART_Transmit("\n");
-  PORTD |= (1 << PD5); //Ligando o Led que representa o motor
+  PORTD |= (1 << PD6); //Ligando o Led que representa o motor
   aux = true;
   cont = 0;
   EIMSK &= ~(1<<PD2);//impede que o sistema reinicie 
@@ -67,7 +67,13 @@ if(cont >= 1526 && sistema == true && aux == true){
     TCCR2B = 0b00000000;//desativando o Timer
     ADCSRA &= ~(1<<ADEN);
     //PWM igual a 127, metade do valor
-    OCR2A =  127; 
+    OCR0A =  127;
+    velocidade = (1800/255)*OCR0A;
+      itoa(velocidade,msg_rx,10);
+      UART_Transmit("A velocidade atual do motor eh ");
+      UART_Transmit(msg_rx);
+      UART_Transmit(" rpm");
+      UART_Transmit("\n"); 
 }
 
  cont++;
@@ -77,17 +83,24 @@ void setup()
 {
   //VER O POTENCIOMETRO, PARA ANALISAR O PWM
   UART_Init(MYUBRR);//Inicializa a comunicação serial
-  DDRD = 0b00110000; //PD5 saída (motor da esteira), PD4 saída(LED que mostrará "Sistema Ligado"), PD3 entrada(botão que desligará o sistema), PD2 entrada(botão que ligará o sistema)
+  DDRD = 0b01010000; //PD6 saída(LED do motor que terá PWM),PD4 saída(LED que mostrará "Sistema Ligado"), PD3 entrada(botão que desligará o sistema), PD2 entrada(botão que ligará o sistema)
   DDRC = 0b00000000;//Usando o A0, será entrada. Variaremos para analisar o PWM
   PORTD = 0b00001100;//Definindo pull up, nos botões PD3 e PD2
   TCNT2 = 0;//inicializando o contador em 0
   TIMSK2 = 0b00000001;// Ativando a interrupção por overflow
-  TCCR2A = 0b00000011;//fast PWM to OCR0A
-  TCCR2B = 0b00001000;// sem pre-escaler, iniciará o sistema
+  TCCR2A = 0b00000000;//fast PWM to OCR0A
+  TCCR2B = 0b00000000;// sem pre-escaler, iniciará o sistema
+  //Configurando o PWM pelo TIMER 0
+  TCCR0A = 0b00000011;//fast PWM to OCR0A
+  TCCR0B = 0b00001000;// sem pre-escaler, iniciará o sistema
+  OCR0A = 0;
   OCR2A = 0;
   EIMSK = (1<<INT1) | (1<<INT0); //Interrupção do PD2 e do PD3
   EICRA |= ((0<<ISC01) | (1<<ISC00)); //Transição de subida e descida, configurando o PD2
   EICRA |= ((0<<ISC11) | (1<<ISC10)); //Transição de subida e descida, configurando o PD3
+  //Acionando o ADMUX e realizando as configurações do ADCSRA
+  ADMUX = (1 << REFS0);
+  ADCSRA = (1 << ADEN) | (1 << ADPS2) | (1 << ADPS1) | (1 << ADPS0);
   sei();//serviço gobal de interrupção ativado  
 }
 
@@ -96,11 +109,11 @@ void loop()
     ADCSRA |= (1<<ADSC);  
     //Analisando a variação do PWM
     while(ADCSRA == (ADCSRA |(1 << ADSC)));
-    OCR2A = (ADC*255)/1023;
+    OCR0A = (ADC*255)/1023;
     
     //Caso se digite 'P', o mesmo mostrará a velocidade de rotação atual do motor
     if(msg_rx[0] == 'P' && sistema == true){ 
-      velocidade = (1800/255)*OCR2A;
+      velocidade = (1800/255)*OCR0A;
       itoa(velocidade,msg_rx,10);
       UART_Transmit("A velocidade atual do motor eh ");
       UART_Transmit(msg_rx);
